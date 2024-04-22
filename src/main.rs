@@ -52,6 +52,9 @@ enum Commands {
         /// Show current state without committing any changes.
         #[arg(short = 'i', long = "inspect", action=clap::ArgAction::SetTrue)]
         only_show_plan_and_exit: bool,
+
+        #[arg(short = 'j', long = "json", action=clap::ArgAction::SetTrue)]
+        enable_json_output: bool,
     },
 
     /// Deploy created schemas on a node.
@@ -84,6 +87,7 @@ async fn main() -> Result<()> {
             lock_path,
             private_key_path,
             only_show_plan_and_exit,
+            enable_json_output
         } => {
             commands::build(
                 store,
@@ -91,6 +95,7 @@ async fn main() -> Result<()> {
                 lock_path,
                 private_key_path,
                 only_show_plan_and_exit,
+                enable_json_output,
             )
             .await
             .with_context(|| "Could not create or update schema")?;

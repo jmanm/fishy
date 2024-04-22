@@ -11,6 +11,7 @@ use p2panda_rs::identity::PublicKey;
 use p2panda_rs::schema::{
     FieldName, FieldType as PandaFieldType, SchemaDescription, SchemaId, SchemaName,
 };
+use serde_json::{to_string_pretty, Map};
 
 use crate::schema_file::{
     FieldType, RelationId, RelationSchema, RelationType, SchemaField, SchemaFields,
@@ -309,5 +310,16 @@ pub fn print_plan(
         style(public_key).bold()
     );
 
+    Ok(())
+}
+
+pub fn print_json_plan(plans: Vec<Plan>) -> Result<()> {
+    let mut map = Map::new();
+    for plan in plans {
+        let schema_id = format!("{}", plan.schema_id());
+        map.insert(plan.schema_id().name().to_string(), schema_id.into());
+    }
+    let json = to_string_pretty(&map)?;
+    println!("{}", json);
     Ok(())
 }

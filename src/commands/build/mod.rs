@@ -25,6 +25,8 @@ use crate::utils::files::absolute_path;
 use crate::utils::key_pair;
 use crate::utils::terminal::{print_title, print_variable};
 
+use self::print::print_json_plan;
+
 /// Automatically creates and signs p2panda data from a key pair and the defined schemas.
 pub async fn build(
     store: MemoryStore,
@@ -32,15 +34,18 @@ pub async fn build(
     lock_path: PathBuf,
     private_key_path: PathBuf,
     only_show_plan_and_exit: bool,
+    enable_json_output: bool,
 ) -> Result<()> {
-    print_title("Create operations and sign entries to update schema");
-    print_variable("schema_path", absolute_path(&schema_path)?.display());
-    print_variable("lock_path", absolute_path(&lock_path)?.display());
-    print_variable(
-        "private_key_path",
-        absolute_path(&private_key_path)?.display(),
-    );
-    println!();
+    if !enable_json_output {
+        print_title("Create operations and sign entries to update schema");
+        print_variable("schema_path", absolute_path(&schema_path)?.display());
+        print_variable("lock_path", absolute_path(&lock_path)?.display());
+        print_variable(
+            "private_key_path",
+            absolute_path(&private_key_path)?.display(),
+        );
+        println!();
+    }
 
     // Load schema file
     let schema_file = SchemaFile::from_path(&schema_path).context(format!(
@@ -76,7 +81,11 @@ pub async fn build(
     // We can also choose to only show the plan and exit directly, without committing any changes.
     // This is useful if we want to find out the schema id and state
     if only_show_plan_and_exit {
-        print_plan(plan, previous_schemas, public_key, false)?;
+        if enable_json_output {
+            print_json_plan(plan)?
+        } else {
+            print_plan(plan, previous_schemas, public_key, false)?;
+        }
         return Ok(());
     }
 
@@ -84,7 +93,11 @@ pub async fn build(
         println!("No new changes to commit.");
     } else {
         // Show plan to user and ask for confirmation
-        print_plan(plan, previous_schemas, public_key, true)?;
+        if enable_json_output {
+            print_json_plan(plan)?
+        } else {
+            print_plan(plan, previous_schemas, public_key, true)?;
+        }
 
         if Confirm::new()
             .with_prompt(format!(
